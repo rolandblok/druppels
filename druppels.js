@@ -43,12 +43,14 @@ class Druppels {
       document.body.appendChild(this.stats.dom);
 
       this.gui = new dat.GUI();
-      this.gui_speeds = this.gui.addFolder('speeds')
+      this.gui_speeds = this.gui.addFolder('settings')
 
       this.pause = false;
 
-      this.gui_speeds.add(settings, "g");
-      this.gui_speeds.add(settings, "radius");
+      //this.gui_speeds.add(settings, "g").min(1);
+      this.gui_speeds.add(settings, "radius").min(0.1);
+      this.gui_speeds.add(settings, "drop_interval_ms").min(100)
+      
       this.gui_speeds.add(settings, "droppers").min(2)
       this.gui_speeds.add(settings, "drop_rows").min(2);
       this.gui_speeds.open();

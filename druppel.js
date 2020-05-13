@@ -3,7 +3,7 @@ class Druppel {
     constructor (three_scene, settings, drup_id, x,y,z, _radius) {
 
         let material = new THREE.MeshPhongMaterial( {color:"#00ff00"} );
-        let geometry = new THREE.SphereBufferGeometry(1, 16 , 16);
+        let geometry = new THREE.SphereBufferGeometry(1, 8 , 8);
         this.three_mesh = new THREE.Mesh( geometry, material );
         this.three_mesh.position.set(x, y, z)
 
