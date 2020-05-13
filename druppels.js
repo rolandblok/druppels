@@ -1,10 +1,10 @@
 function init() {
-  squares = new Squares("sqaures");
-  squares.animLoop();
+  druppels = new Druppels("druppels");
+  druppels.animLoop();
 }
 
 
-class Squares {
+class Druppels {
 
   constructor(name) {
 
@@ -32,6 +32,17 @@ class Squares {
       this.stats = new Stats();
       document.body.appendChild(this.stats.dom);
 
+      this.gui = new dat.GUI();
+      this.gui_speeds = this.gui.addFolder('speeds')
+
+      this.rot_speed_x = 0.004;
+      this.rot_speed_y = 0.008;
+
+      this.gui_speeds.add(this, "rot_speed_x");
+      this.gui_speeds.add(this, "rot_speed_y");
+      this.gui_speeds.open();
+
+
       // THREE / GL
       this.three_scene = new THREE.Scene();
 
@@ -57,7 +68,7 @@ class Squares {
               //var texture_loader = new THREE.TextureLoader()
               //var texture = texture_loader.load( 'img/animal.cavia.32.01.png' );
               let material = new THREE.MeshPhongMaterial( {color:"#00ff00"} );
-              let geometry = new THREE.BoxGeometry(1, 1 , 1);
+              let geometry = new THREE.SphereBufferGeometry(1, 32 , 32);
               this.mesh_box = new THREE.Mesh( geometry, material );
               this.three_scene.add(  this.mesh_box );
 
@@ -95,8 +106,8 @@ class Squares {
 
   render() {
     
-    this.mesh_box.rotation.x += 0.004;
-    this.mesh_box.rotation.y += 0.008;
+    this.mesh_box.rotation.x += this.rot_speed_x;
+    this.mesh_box.rotation.y += this.rot_speed_y;
 
     this.renderer.render(this.three_scene, this.THREEcamera)
 
