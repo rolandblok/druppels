@@ -6,6 +6,12 @@ function init() {
 var settings = {};
 settings.g = 9.8;
 settings.drop_interval_ms = 1000;
+settings.drop_offset_y = 200;
+settings.drop_height   =  5;
+settings.radius        =  0.1;
+settings.ground_z      = -5;
+settings.droppers      =  10;
+settings.drop_rows     =  10;
 
 
 class Druppels {
@@ -42,6 +48,9 @@ class Druppels {
       this.pause = false;
 
       this.gui_speeds.add(settings, "g");
+      this.gui_speeds.add(settings, "radius");
+      this.gui_speeds.add(settings, "droppers").min(2)
+      this.gui_speeds.add(settings, "drop_rows").min(2);
       this.gui_speeds.open();
 
 
@@ -54,13 +63,13 @@ class Druppels {
       this.THREEcamera.up = new THREE.Vector3(0,   0,   1)
       this.THREEcamera.aspect = window.innerWidth / window.innerHeight;
       this.THREEcamera.fov = this.fov
-      this.THREEcamera.position.set(-10, 0, 0)
+      this.THREEcamera.position.set(0, -15, 0)
       this.THREEcamera.lookAt(new THREE.Vector3(0,   0,  0))
       this.THREEcamera.updateProjectionMatrix();
       this.back_color = 0x000000
 
       this.three_light = new THREE.PointLight( "ffffff", 1, 0 )
-      this.three_light.position.set(-10, -0, -0)
+      this.three_light.position.set(-10, -10, -10)
       
       this.three_scene.add( this.three_light );
 
@@ -71,7 +80,8 @@ class Druppels {
       this.renderer.setSize( window.innerWidth, window.innerHeight);
       this.canvas = document.body.appendChild(this.renderer.domElement);
       
-      this.druppels = [];
+      this.druppels = {};
+      this.druppel_cntr = 0;
         
      
       this.last_update_time_ms = null;
@@ -89,25 +99,38 @@ class Druppels {
     if ((this.last_update_time_ms != null) && !this.pause ) {
       var d_time_ms = cur_time_ms - this.last_update_time_ms
 
-      console.log("cur_time_ms " + (cur_time_ms - this.last_drop_time_ms))
-
-
+      // extra drops
       if ( (cur_time_ms - this.last_drop_time_ms) > settings.drop_interval_ms ) {
 
-        for (let x = 0; x < 10; x++ ) {
-          for (let y = 0; y < 10; y++ ) {
-            this.druppels.push(new Druppel(this.three_scene, settings, x, y, 5, 0.1) );
+        var x_step = 10 / (settings.droppers-1);
+        for (let dx = 0; dx < settings.droppers; dx++ ) {
+          var x = -5 + dx*x_step;
+
+          var y_step = 10 / (settings.drop_rows-1)
+          for (let dy = 0; dy < settings.drop_rows; dy++) {
+            var y = -5 + dy*y_step;
+            
+            var drup_id = this._genID();
+            this.druppels[drup_id] = new Druppel(this.three_scene, settings, drup_id, x, y, settings.drop_height, settings.radius) ;
             
           }
         }
+
         this.last_drop_time_ms = cur_time_ms
       }
 
-
-
-      for (var druppel of this.druppels) {
+      // update the drops
+      for (var druppel of Object.values(this.druppels)) {
         druppel.update(d_time_ms);
+
+        if (druppel.z < settings.ground_z) {
+          druppel.delete();
+          delete this.druppels[druppel.drup_id];
+        }
       }
+
+      // ground hit : remove
+
     }
 
 
@@ -199,5 +222,8 @@ class Druppels {
       }
   }
 
-
+  _genID() {
+    this.druppel_cntr ++
+    return this.druppel_cntr 
+  }
 }
