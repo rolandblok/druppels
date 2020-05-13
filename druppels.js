@@ -3,6 +3,10 @@ function init() {
   druppels.animLoop();
 }
 
+var settings = {};
+settings.g = 9.8;
+settings.drop_interval_ms = 1000;
+
 
 class Druppels {
 
@@ -35,11 +39,9 @@ class Druppels {
       this.gui = new dat.GUI();
       this.gui_speeds = this.gui.addFolder('speeds')
 
-      this.rot_speed_x = 0.004;
-      this.rot_speed_y = 0.008;
+      this.pause = false;
 
-      this.gui_speeds.add(this, "rot_speed_x");
-      this.gui_speeds.add(this, "rot_speed_y");
+      this.gui_speeds.add(settings, "g");
       this.gui_speeds.open();
 
 
@@ -64,23 +66,16 @@ class Druppels {
 
       this.raycaster = new THREE.Raycaster(); 
 
-              // box
-              //var texture_loader = new THREE.TextureLoader()
-              //var texture = texture_loader.load( 'img/animal.cavia.32.01.png' );
-              let material = new THREE.MeshPhongMaterial( {color:"#00ff00"} );
-              let geometry = new THREE.SphereBufferGeometry(1, 32 , 32);
-              this.mesh_box = new THREE.Mesh( geometry, material );
-              this.three_scene.add(  this.mesh_box );
 
       this.renderer = new THREE.WebGLRenderer({canvas: this.canvas_g, antialias: true, depth: true});
       this.renderer.setSize( window.innerWidth, window.innerHeight);
       this.canvas = document.body.appendChild(this.renderer.domElement);
       
-
-      
-
+      this.druppels = [];
+        
      
-      this.last_update_time = null;
+      this.last_update_time_ms = null;
+      this.last_drop_time_ms = 0;
 
   }
 
@@ -91,9 +86,31 @@ class Druppels {
     this.stats.begin();
 
     //update
-    if(this.last_update_time_ms != null){
-        var d_time_ms = cur_time_ms - this.last_update_time_ms
+    if ((this.last_update_time_ms != null) && !this.pause ) {
+      var d_time_ms = cur_time_ms - this.last_update_time_ms
+
+      console.log("cur_time_ms " + (cur_time_ms - this.last_drop_time_ms))
+
+
+      if ( (cur_time_ms - this.last_drop_time_ms) > settings.drop_interval_ms ) {
+
+        for (let x = 0; x < 10; x++ ) {
+          for (let y = 0; y < 10; y++ ) {
+            this.druppels.push(new Druppel(this.three_scene, settings, x, y, 5, 0.1) );
+            
+          }
+        }
+        this.last_drop_time_ms = cur_time_ms
+      }
+
+
+
+      for (var druppel of this.druppels) {
+        druppel.update(d_time_ms);
+      }
     }
+
+
     this.last_update_time_ms = cur_time_ms;
 
     // draw
@@ -106,9 +123,6 @@ class Druppels {
 
   render() {
     
-    this.mesh_box.rotation.x += this.rot_speed_x;
-    this.mesh_box.rotation.y += this.rot_speed_y;
-
     this.renderer.render(this.three_scene, this.THREEcamera)
 
   }
@@ -134,6 +148,7 @@ class Druppels {
 
   onmousedown(e) {
     console.log(" onmousedown : " + e.x + " " + e.y)
+    this.pause = !this.pause;
   }
   onmouseup(e) {
     console.log(" onmouseup : " + e.x + " " + e.y)
